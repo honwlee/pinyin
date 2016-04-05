@@ -95,3 +95,18 @@ describe('风格测试',function(){
     py[0].should.be.an.Array.and.eql(['z','c']);
   });
 });
+
+describe('特殊字符',function(){
+  it('昊',function(){
+    var py = pinyin('昊');
+    py.should.be.an.Array.and.have.length(1);
+    py[0].should.be.an.Array.and.have.length(1);
+    py[0][0].should.eql('hào');
+  });
+  it('脑',function(){
+    var py = pinyin('脑');
+    py.should.be.an.Array.and.have.length(1);
+    py[0].should.be.an.Array.and.have.length(1);
+    py[0][0].should.eql('nǎo');
+  });
+});

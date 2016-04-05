@@ -137,32 +137,45 @@ var getPinyin = function(word){
   var max = fileSize;
   var fd = fs.openSync(filePath,'r');
   var wordAscii = word.charCodeAt(0);
+  // console.log('wordAscii', wordAscii);
   var buffer = searchFile(fd,min,max,function(offset,isReverse){
     // console.log('adjust input offset %d',offset);
     var tmpBuffer = new Buffer(1);
+    // console.log('tmpBuffer', tmpBuffer)
     if(offset > 1){
       fs.readSync(fd,tmpBuffer,0,1,offset-1);
     }else{
       return offset;
     }
     if(isReverse){
+      // console.log('if', 'isReverse:', isReverse)
       offset--;
       tmpBuffer[0] = 0;
       while(+tmpBuffer[0] !== 10 && offset > min){
+        // console.log('tmpBuffer[0]', tmpBuffer[0])
         fs.readSync(fd,tmpBuffer,0,1,--offset);
       }
       offset++;
     }else{
-      while(+tmpBuffer[0] !== 10 && offset <= max){
+      var nextBuffer = new Buffer(1);
+      fs.readSync(fd,nextBuffer,0,1,offset);
+      // console.log('fs.readSync', 'fd:', fd, 'nextBuffer:', nextBuffer, 'offset:', offset)
+      while((+tmpBuffer[0] !== 10 || +nextBuffer[0] > 2) && offset <= max/* && +nextBuffer[0] <= 2*/){
+
+        // console.log('tmpBuffer[0]', tmpBuffer[0])
+        // console.log('nextBuffer[0]',nextBuffer[0])
         fs.readSync(fd,tmpBuffer,0,1,offset++);
+        fs.readSync(fd,nextBuffer,0,1,offset);
       }
     }
     // console.log('adjusted output offset',offset);
     return offset;
   },function(buffer){
+    // console.log('L169', 'buffer:', buffer)
     return buffer.length > 3 && +buffer[buffer.length - 1] === 10;
   },function(buffer){
     var ascii = buffer[0]*256*256 + buffer[1]*256 + buffer[2];
+    // console.log('ascii', 'buffer[0]:', buffer[0], 'buffer[1]:', buffer[1], 'buffer[2]:', buffer[2])
     if(ascii === wordAscii){
       return 0;
     }else if(ascii < wordAscii){
@@ -179,7 +192,7 @@ var getPinyin = function(word){
   }
 };
 
-/** 
+/**
  * @param {String} hans 要转为拼音的目标字符串（汉字）。
  * @param {Object} options, 可选，用于指定拼音风格，是否启用多音字。
  * @return {Array} 返回的拼音列表。
